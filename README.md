@@ -27,7 +27,7 @@ From wikipedia, Gosper's Glider Gun:
 
 <img src=http://upload.wikimedia.org/wikipedia/commons/e/e5/Gospers_glider_gun.gif>
 
-Still frame of GameOfLife:
+Still frame of GameOfLife (green '+' indicates newly spawned cell):
 
 <img src=http://i.imgur.com/UzzydBc.png>
 
