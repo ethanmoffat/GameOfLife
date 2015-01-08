@@ -101,12 +101,12 @@ void Grid::WriteToConsole() const
 			Console::Out(x, y, cell.Active() ? "+" : " ");
 		}
 		Console::SetBackColor(Console::White);
-		Console::Out(y, m_width, " ");
+		Console::Out(m_width, y, " ");
 	}
 
 	Console::SetBackColor(Console::White);
 	for (int x = 0; x < m_width; ++x)
-		Console::Out(m_height, x, " ");
+		Console::Out(x, m_height, " ");
 	
 	Console::SetBackColor(Console::Black);
 }
