@@ -39,22 +39,22 @@ private:
 	//public interface
 public:
 	static void Out(const char * const format, ...);
-	static void Out(int x, int y, const char * const format, ...);
-	static void RelativeOut(int x, int y, const char * const format, ...);
-	static void SetBounds(int x, int y);
+	static void Out(short x, short y, const char * const format, ...);
+	static void RelativeOut(short x, short y, const char * const format, ...);
+	static void SetBounds(short x, short y);
 	static void SetForeColor(ConsoleColor color);
 	static void SetBackColor(ConsoleColor color);
 	static void SetCursorVisible(bool bVis);
 	static void SetCursorHeight(int percent);
 	static void Read(const char * const format, ...);
 
-	inline static ConsoleColor GetForeColor() { return GetInst().m_foreColor; }
-	inline static ConsoleColor GetBackColor() { return GetInst().m_backColor; }
+	static ConsoleColor GetForeColor() { return GetInst().m_foreColor; }
+	static ConsoleColor GetBackColor() { return GetInst().m_backColor; }
 
 	~Console();
 //private instance methods
 private:
-	inline bool IsHandleValid() const { return m_hConsole && m_hConsole != INVALID_HANDLE_VALUE; }
+	bool IsHandleValid() const { return m_hConsole && m_hConsole != INVALID_HANDLE_VALUE; }
 
 //private instance members
 private:

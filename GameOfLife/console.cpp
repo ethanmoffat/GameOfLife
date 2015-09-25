@@ -4,7 +4,7 @@
 #include <regex>
 
 Console::Console()
-	: m_hConsole(NULL)
+	: m_hConsole(INVALID_HANDLE_VALUE)
 {
 	m_hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	if (!m_hConsole || m_hConsole == INVALID_HANDLE_VALUE)
@@ -46,7 +46,7 @@ void Console::Out(const char * const format, ...)
 		throw ConsoleException(ConsoleException::ERROR_OUTPUT_FAILED);
 }
 
-void Console::Out(int x, int y, const char * const format, ...)
+void Console::Out(short x, short y, const char * const format, ...)
 {
 	if (!GetInst().IsHandleValid())
 		throw ConsoleException(ConsoleException::ERROR_BAD_HANDLE);
@@ -63,7 +63,7 @@ void Console::Out(int x, int y, const char * const format, ...)
 	va_end(list);
 }
 
-void Console::RelativeOut(int x, int y, const char * const format, ...)
+void Console::RelativeOut(short x, short y, const char * const format, ...)
 {
 	if (!GetInst().IsHandleValid())
 		throw ConsoleException(ConsoleException::ERROR_BAD_HANDLE);
@@ -85,7 +85,7 @@ void Console::RelativeOut(int x, int y, const char * const format, ...)
 	va_end(list);
 }
 
-void Console::SetBounds(int x, int y)
+void Console::SetBounds(short x, short y)
 {
 	if (!GetInst().IsHandleValid())
 		throw ConsoleException(ConsoleException::ERROR_BAD_HANDLE);

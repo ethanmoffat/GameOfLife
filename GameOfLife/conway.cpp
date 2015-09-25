@@ -43,7 +43,7 @@ void Grid::ActCells()
 		for (int x = 0; x < m_width; ++x)
 		{
 			//foreach cell in the grid...
-			Cell * c = &(m_cells[y][x]);
+			Cell * c = &m_cells[y][x];
 			int neighborCount = 0;
 
 			//sum the neighbors
@@ -109,4 +109,21 @@ void Grid::WriteToConsole() const
 		Console::Out(x, m_height, " ");
 	
 	Console::SetBackColor(Console::Black);
+}
+
+int Grid::GetNumberOfLiveCells() const
+{
+	auto numberOfLiveCells = 0;
+
+	for (auto y = 0; y < m_height; ++y)
+	{
+		for (auto x = 0; x < m_width; ++x)
+		{
+			auto& cell = m_cells[y][x];
+			if (cell.Active())
+				numberOfLiveCells++;
+		}
+	}
+
+	return numberOfLiveCells;
 }

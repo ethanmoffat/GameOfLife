@@ -18,15 +18,15 @@ public:
 		, m_foreColor(Console::GetForeColor())
 		, m_backColor(Console::GetBackColor()) { }
 
-	inline void Toggle() { m_Enabled = !m_Enabled; }
-	inline bool Active() const { return m_Enabled; }
+	void Toggle() { m_Enabled = !m_Enabled; }
+	bool Active() const { return m_Enabled; }
 
-	inline void PrepareToggle(bool bPrepared = true) { m_prepare = bPrepared; }
-	inline bool IsPrepared() const { return m_prepare; }
+	void PrepareToggle(bool bPrepared = true) { m_prepare = bPrepared; }
+	bool IsPrepared() const { return m_prepare; }
 
-	inline Console::ConsoleColor ForeColor() const { return m_foreColor; }
-	inline Console::ConsoleColor BackColor() const { return m_backColor; }
-	inline void SetColors(Console::ConsoleColor foreColor, Console::ConsoleColor backColor) { m_foreColor = foreColor; m_backColor = backColor; }
+	Console::ConsoleColor ForeColor() const { return m_foreColor; }
+	Console::ConsoleColor BackColor() const { return m_backColor; }
+	void SetColors(Console::ConsoleColor foreColor, Console::ConsoleColor backColor) { m_foreColor = foreColor; m_backColor = backColor; }
 private:
 	bool m_Enabled, m_prepare;
 	Console::ConsoleColor m_foreColor;
@@ -44,6 +44,8 @@ public:
 	void ActCells();
 	void Seed(const list<COORD> &cells);
 	void WriteToConsole() const;
+
+	int GetNumberOfLiveCells() const;
 
 private:
 	Cell ** m_cells;
