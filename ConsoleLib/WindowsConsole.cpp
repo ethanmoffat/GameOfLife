@@ -1,9 +1,6 @@
-#include "console.h"
+#include "WindowsConsole.h"
 
-#include <algorithm>
-#include <regex>
-
-Console::Console()
+WindowsConsole::WindowsConsole()
 	: m_hConsole(INVALID_HANDLE_VALUE)
 {
 	m_hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -13,7 +10,7 @@ Console::Console()
 	CONSOLE_SCREEN_BUFFER_INFO info;
 	if (!GetConsoleScreenBufferInfo(m_hConsole, &info))
 		throw ConsoleException(ConsoleException::ERROR_GET_ATTRIBUTES_FAILED, GetLastError());
-	m_backColor = static_cast<ConsoleColor>((info.wAttributes >> 4) & 0xF);
+	m_backColor = static_cast<ConsoleColor>(info.wAttributes >> 4 & 0xF);
 	m_foreColor = static_cast<ConsoleColor>(info.wAttributes & 0xF);
 
 	CONSOLE_CURSOR_INFO curInfo;
@@ -23,14 +20,14 @@ Console::Console()
 	m_isCursorVisible = curInfo.bVisible != 0;
 }
 
-Console::~Console()
+WindowsConsole::~WindowsConsole()
 {
 	//no need to close handle because it is stdout
 }
 
-void Console::Out(const char * const format, ...)
+void WindowsConsole::Out(const char * const format, ...)
 {
-	if (!GetInst().IsHandleValid())
+	if (!IsHandleValid())
 		throw ConsoleException(ConsoleException::ERROR_BAD_HANDLE);
 
 	va_list list;
@@ -40,19 +37,20 @@ void Console::Out(const char * const format, ...)
 	va_end(list);
 
 	DWORD numCharsWritten = 0;
-	if (!WriteConsoleA(GetInst().m_hConsole, buffer, static_cast<DWORD>(strlen(buffer)), &numCharsWritten, NULL))
+	if (!WriteConsoleA(m_hConsole, buffer, static_cast<DWORD>(strlen(buffer)), &numCharsWritten, NULL))
 		throw ConsoleException(ConsoleException::ERROR_OUTPUT_FAILED, GetLastError());
-	else if (numCharsWritten != static_cast<DWORD>(strlen(buffer)))
+	
+	if (numCharsWritten != static_cast<DWORD>(strlen(buffer)))
 		throw ConsoleException(ConsoleException::ERROR_OUTPUT_FAILED);
 }
 
-void Console::Out(short x, short y, const char * const format, ...)
+void WindowsConsole::Out(short x, short y, const char * const format, ...)
 {
-	if (!GetInst().IsHandleValid())
+	if (!IsHandleValid())
 		throw ConsoleException(ConsoleException::ERROR_BAD_HANDLE);
 
 	COORD pos = { x, y };
-	if (!SetConsoleCursorPosition(GetInst().m_hConsole, pos))
+	if (!SetConsoleCursorPosition(m_hConsole, pos))
 		throw ConsoleException(ConsoleException::ERROR_SET_POSITION_FAILED, GetLastError());
 	
 	va_list list;
@@ -63,18 +61,18 @@ void Console::Out(short x, short y, const char * const format, ...)
 	va_end(list);
 }
 
-void Console::RelativeOut(short x, short y, const char * const format, ...)
+void WindowsConsole::RelativeOut(short x, short y, const char * const format, ...)
 {
-	if (!GetInst().IsHandleValid())
+	if (!IsHandleValid())
 		throw ConsoleException(ConsoleException::ERROR_BAD_HANDLE);
 
 	CONSOLE_SCREEN_BUFFER_INFO info;
-	if (!GetConsoleScreenBufferInfo(GetInst().m_hConsole, &info))
+	if (!GetConsoleScreenBufferInfo(m_hConsole, &info))
 		throw ConsoleException(ConsoleException::ERROR_GET_ATTRIBUTES_FAILED, GetLastError());
 
 	//relative to the previous cursor position
 	COORD pos = { info.dwCursorPosition.X + x, info.dwCursorPosition.Y + y };
-	if (!SetConsoleCursorPosition(GetInst().m_hConsole, pos))
+	if (!SetConsoleCursorPosition(m_hConsole, pos))
 		throw ConsoleException(ConsoleException::ERROR_SET_POSITION_FAILED, GetLastError());
 
 	va_list list;
@@ -85,72 +83,72 @@ void Console::RelativeOut(short x, short y, const char * const format, ...)
 	va_end(list);
 }
 
-void Console::SetBounds(short x, short y)
+void WindowsConsole::SetBounds(short x, short y)
 {
-	if (!GetInst().IsHandleValid())
+	if (!IsHandleValid())
 		throw ConsoleException(ConsoleException::ERROR_BAD_HANDLE);
 	
 	COORD sz = { x, y };
-	if (!SetConsoleScreenBufferSize(GetInst().m_hConsole, sz))
+	if (!SetConsoleScreenBufferSize(m_hConsole, sz))
 		throw ConsoleException(ConsoleException::ERROR_SET_SIZE_FAILED, GetLastError());
 }
 
-void Console::SetForeColor(ConsoleColor color)
+void WindowsConsole::SetForeColor(ConsoleColor color)
 {
-	if (!GetInst().IsHandleValid())
+	if (!IsHandleValid())
 		throw ConsoleException(ConsoleException::ERROR_BAD_HANDLE);
 
-	GetInst().m_foreColor = color;
+	m_foreColor = color;
 	WORD attr = static_cast<WORD>(color);
-	attr |= static_cast<WORD>(GetInst().m_backColor);
+	attr |= static_cast<WORD>(m_backColor);
 
-	if (!SetConsoleTextAttribute(GetInst().m_hConsole, attr))
+	if (!SetConsoleTextAttribute(m_hConsole, attr))
 		throw ConsoleException(ConsoleException::ERROR_SET_COLOR_FAILED, GetLastError());
 }
 
-void Console::SetBackColor(ConsoleColor color)
+void WindowsConsole::SetBackColor(ConsoleColor color)
 {
-	if (!GetInst().IsHandleValid())
+	if (!IsHandleValid())
 		throw ConsoleException(ConsoleException::ERROR_BAD_HANDLE);
 
-	GetInst().m_backColor = color;
+	m_backColor = color;
 	WORD attr = static_cast<WORD>(color) << 4;
-	attr |= static_cast<WORD>(GetInst().m_foreColor);
+	attr |= static_cast<WORD>(m_foreColor);
 
-	if (!SetConsoleTextAttribute(GetInst().m_hConsole, attr))
+	if (!SetConsoleTextAttribute(m_hConsole, attr))
 		throw ConsoleException(ConsoleException::ERROR_SET_COLOR_FAILED, GetLastError());
 }
 
-void Console::SetCursorVisible(bool bVis)
+void WindowsConsole::SetCursorVisible(bool bVis)
 {
-	if (!GetInst().IsHandleValid())
+	if (!IsHandleValid())
 		throw ConsoleException(ConsoleException::ERROR_BAD_HANDLE);
 
 	CONSOLE_CURSOR_INFO info;
-	info.dwSize = GetInst().m_cursorHeight;
-	info.bVisible = GetInst().m_isCursorVisible = bVis;
+	info.dwSize = m_cursorHeight;
+	info.bVisible = m_isCursorVisible = bVis;
 
-	if (!SetConsoleCursorInfo(GetInst().m_hConsole, &info))
+	if (!SetConsoleCursorInfo(m_hConsole, &info))
 		throw ConsoleException(ConsoleException::ERROR_SET_CURSORINFO_FAILED, GetLastError());
 }
 
-void Console::SetCursorHeight(int percent)
+void WindowsConsole::SetCursorHeight(int percent)
 {
-	if (!GetInst().IsHandleValid())
+	if (!IsHandleValid())
 		throw ConsoleException(ConsoleException::ERROR_BAD_HANDLE);
 
 	if (percent < 0 || percent > 100)
 		throw ConsoleException(ConsoleException::ERROR_CURSOR_HEIGHT_INVALID);
 
 	CONSOLE_CURSOR_INFO info;
-	info.dwSize = GetInst().m_cursorHeight = static_cast<DWORD>(percent);
-	info.bVisible = GetInst().m_isCursorVisible;
+	info.dwSize = m_cursorHeight = static_cast<DWORD>(percent);
+	info.bVisible = m_isCursorVisible;
 
-	if (!SetConsoleCursorInfo(GetInst().m_hConsole, &info))
+	if (!SetConsoleCursorInfo(m_hConsole, &info))
 		throw ConsoleException(ConsoleException::ERROR_SET_CURSORINFO_FAILED, GetLastError());
 }
 
-void Console::Read(const char * const format, ...)
+void WindowsConsole::Read(const char * const format, ...)
 {
 	//this is pretty much just a wrapper around scanf...
 	va_list list;

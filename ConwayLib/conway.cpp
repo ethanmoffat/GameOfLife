@@ -11,6 +11,22 @@ Grid::Grid(int grid_width, int grid_height)
 	}
 }
 
+Grid::Grid(const Grid& other) 
+{
+	m_width = other.GetWidth();
+	m_height = other.GetHeight();
+	m_cells = new Cell*[m_height];
+	for (int i = 0; i < m_height; ++i)
+	{
+		m_cells[i] = new Cell[m_width];
+		for (int j = 0; j < m_width; ++j)
+		{
+			if (other.GetCellAt(j, i).Active())
+				m_cells[i][j].Toggle();
+		}
+	}
+}
+
 Grid::~Grid()
 {
 	if (m_cells)
@@ -77,38 +93,11 @@ void Grid::ActCells()
 			Cell &c = m_cells[y][x];
 			if (c.IsPrepared())
 			{
-				bool prevActive = c.Active();
 				c.Toggle();
 				c.PrepareToggle(false);
-				if (!prevActive && c.Active())
-					c.SetColors(Console::Green, Console::Black);
 			}
-			else
-				c.SetColors(Console::DarkGray, Console::Black);
 		}
 	}
-}
-
-void Grid::WriteToConsole() const
-{
-	for (int y = 0; y < m_height; ++y)
-	{
-		for (int x = 0; x < m_width; ++x)
-		{
-			Cell& cell = m_cells[y][x];
-			Console::SetForeColor(cell.ForeColor());
-			Console::SetBackColor(cell.BackColor());
-			Console::Out(x, y, cell.Active() ? "+" : " ");
-		}
-		Console::SetBackColor(Console::White);
-		Console::Out(m_width, y, " ");
-	}
-
-	Console::SetBackColor(Console::White);
-	for (int x = 0; x < m_width; ++x)
-		Console::Out(x, m_height, " ");
-	
-	Console::SetBackColor(Console::Black);
 }
 
 int Grid::GetNumberOfLiveCells() const

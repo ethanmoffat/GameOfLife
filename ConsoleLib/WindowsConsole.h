@@ -1,57 +1,28 @@
 #pragma once
 
-#include <Windows.h>
-#include <memory>
+#include <exception>
 #include <string>
-#include <sstream>
+#include "IConsole.h"
 
-class Console
+class WindowsConsole : public IConsole
 {
 public:
-	enum ConsoleColor {
-		Black = 0,
-		DarkBlue = FOREGROUND_BLUE,
-		DarkGreen = FOREGROUND_GREEN,
-		DarkCyan = FOREGROUND_GREEN | FOREGROUND_BLUE,
-		DarkRed = FOREGROUND_RED,
-		DarkMagenta = FOREGROUND_RED | FOREGROUND_BLUE,
-		DarkYellow = FOREGROUND_RED | FOREGROUND_GREEN,
-		DarkGray = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE,
-		Gray = FOREGROUND_INTENSITY,
-		Blue = FOREGROUND_INTENSITY | FOREGROUND_BLUE,
-		Green = FOREGROUND_INTENSITY | FOREGROUND_GREEN,
-		Cyan = FOREGROUND_INTENSITY | FOREGROUND_GREEN | FOREGROUND_BLUE,
-		Red = FOREGROUND_INTENSITY | FOREGROUND_RED,
-		Magenta = FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_BLUE,
-		Yellow = FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN,
-		White = FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE,
-	}; //background can be obtained by << 8
+	WindowsConsole();
 
-private:
-	//singleton pattern
-	static Console& GetInst()
-	{
-		static Console inst;
-		return inst;
-	}
-	Console();
+	virtual void Out(const char * const format, ...) override;
+	virtual void Out(short x, short y, const char * const format, ...) override;
+	virtual void RelativeOut(short x, short y, const char * const format, ...) override;
+	virtual void SetBounds(short x, short y) override;
+	virtual void SetForeColor(ConsoleColor color) override;
+	virtual void SetBackColor(ConsoleColor color) override;
+	virtual void SetCursorVisible(bool bVis) override;
+	virtual void SetCursorHeight(int percent) override;
+	virtual void Read(const char * const format, ...) override;
 
-	//public interface
-public:
-	static void Out(const char * const format, ...);
-	static void Out(short x, short y, const char * const format, ...);
-	static void RelativeOut(short x, short y, const char * const format, ...);
-	static void SetBounds(short x, short y);
-	static void SetForeColor(ConsoleColor color);
-	static void SetBackColor(ConsoleColor color);
-	static void SetCursorVisible(bool bVis);
-	static void SetCursorHeight(int percent);
-	static void Read(const char * const format, ...);
+	virtual ConsoleColor GetForeColor() const override { return m_foreColor; }
+	virtual ConsoleColor GetBackColor() const override { return m_backColor; }
 
-	static ConsoleColor GetForeColor() { return GetInst().m_foreColor; }
-	static ConsoleColor GetBackColor() { return GetInst().m_backColor; }
-
-	~Console();
+	virtual ~WindowsConsole();
 //private instance methods
 private:
 	bool IsHandleValid() const { return m_hConsole && m_hConsole != INVALID_HANDLE_VALUE; }

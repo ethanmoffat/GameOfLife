@@ -1,13 +1,14 @@
-#include "console.h"
+#include "WindowsConsole.h"
 #include "conway.h"
 
 #include <thread>
 #include <mutex>
+#include "GameRenderer.h"
 
 using std::thread;
 using std::mutex;
 
-void InputThread(bool * quit, mutex * pause, int * speed)
+void InputThread(IConsole * console, bool * quit, mutex * pause, int * speed)
 {
 	if (!quit || !pause || !speed)
 		std::exit(-99);
@@ -16,7 +17,7 @@ void InputThread(bool * quit, mutex * pause, int * speed)
 	bool paused = false;
 	while (!*quit)
 	{
-		Console::Read("%s", input);
+		console->Read("%s", input);
 		if (strlen(input) == 1)
 		{
 			switch (input[0])
@@ -37,14 +38,22 @@ void InputThread(bool * quit, mutex * pause, int * speed)
 
 int main(int argc, char * argv[])
 {
+#ifdef WIN32
+	IConsole * console = new WindowsConsole();
+#else
+	IConsole * console = new /**/;
+#endif
+
 	bool quit = false;
 	mutex pause;
 	int speed = 50;
-	thread input(InputThread, &quit, &pause, &speed);
+	thread input(InputThread, console, &quit, &pause, &speed);
 
 	try
 	{
 		Grid g;
+		GameRenderer rend(console);
+
 		//seed with a 'gosper glider gun'
 		//http://en.wikipedia.org/wiki/Gun_(cellular_automaton)
 		g.Seed({{ 1, 5 }, { 2, 5 }, { 1, 6 }, { 2, 6 },
@@ -58,32 +67,33 @@ int main(int argc, char * argv[])
 
 				{ 35, 3 }, { 36, 3 }, { 35, 4 }, { 36, 4 },
 		});
+		rend.SetCurrentGrid(&g);
+		rend.SetPreviousGrid(&g);
 
-		Console::Out(0, 44, "Enter \'q\' to quit.");
-		Console::Out(0, 45, "p=pause  r=resume  x<num>=iteration speed (ms)");
-		Console::SetCursorVisible(false);
+		console->Out(0, 44, "Enter \'q\' to quit.");
+		console->Out(0, 45, "p=pause  r=resume  x<num>=iteration speed (ms)");
+		console->SetCursorVisible(false);
+
 		int i = 0;
 		while (!quit)
 		{
 			pause.lock();
-			Console::Out(0, 42, "Iteration %d...   (delaying %dms)", i + 1, speed);
-			g.WriteToConsole();
+
+			Grid prev(g);
+			rend.SetPreviousGrid(&prev);
+			rend.SetCurrentGrid(&g);
+			
 			g.ActCells();
+			
+			rend.RenderWorld();
+
+			console->Out(0, 42, "Iteration %d...   (delaying %dms)     ", ++i, speed);
 			Sleep(speed);
-			i++;
+			
 			pause.unlock();
 		}
-		Console::Out(0, 43, "Quitting...            \n");
-		Console::SetCursorVisible(true);
-
-		/* SAMPLE MAIN using Console functions
-		Console::Out(5, 5, "5");
-		for (int i = 0; i <= 4; ++i)
-		{
-			Sleep(100);
-			Console::RelativeOut(-2, -1, "%d", i);
-		}
-		Console::Out(0, 6, "Done!\n");*/
+		console->Out(0, 43, "Quitting...            \n");
+		console->SetCursorVisible(true);
 	}
 	catch (ConsoleException &e)
 	{
@@ -109,6 +119,7 @@ int main(int argc, char * argv[])
 	}
 
 	input.join();
+	delete console;
 
 	return 0;
 }
